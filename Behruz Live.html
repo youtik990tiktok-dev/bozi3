@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="tj">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Панели Админ</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #121212;
+      font-family: Arial, sans-serif;
+      color: #fff;
+    }
+    .card {
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    h2 {
+      color: #e50914;
+      margin-top: 0;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 15px 0;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #2a2a2a;
+      color: #fff;
+      font-size: 16px;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #fff;
+      background: #e50914;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #b20710;
+    }
+
+    /* Қуттии линк - клик нашаванда */
+    .link-box {
+      width: 100%;
+      padding: 12px;
+      margin: 15px 0 0 0;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #2a2a2a;
+      color: #aaa;
+      font-size: 14px;
+      text-align: center;
+      box-sizing: border-box;
+      word-break: break-all;
+      user-select: text;
+      pointer-events: none; /* клик нашаванда */
+    }
+
+    /* Тугмаи нусха кардани линк - сабз */
+    #copyBtn {
+      background: #28a745;
+      margin-top: 12px;
+    }
+    #copyBtn:hover {
+      background: #1e7e34;
+    }
+    #copyBtn.copied {
+      background: #1c7c31;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>🎥 ОҒОЗИ ЭФИР</h2>
+    <input type="text" id="streamInput" value="4sewM2F" placeholder="ID ё линки push-ро гузоред">
+    <button id="startBtn">🚀 Оғоз кардани эфир</button>
+
+    <div class="link-box" id="linkBox">—</div>
+    <button id="copyBtn">📋 Нусха кардани линк</button>
+  </div>
+
+  <script>
+    let currentLink = '';   // линки томошобин (view) — барои нишон додан ва нусха кардан
+    let pushLink = '';      // линки пахшкунанда (push) — барои кушодани эфир
+
+    // Аз рӯи маълумоти майдони матнӣ линкҳоро месозад ва дар қуттӣ нишон медиҳад
+    function updateLink() {
+      let inputValue = document.getElementById('streamInput').value.trim();
+      let linkBox = document.getElementById('linkBox');
+
+      if (!inputValue) {
+        currentLink = '';
+        pushLink = '';
+        linkBox.textContent = '—';
+        return;
+      }
+
+      // Тоза кардани ID аз линк агар суроғаи пурра дохил шуда бошад
+      let streamId = inputValue;
+      if (inputValue.includes('push=')) {
+        streamId = inputValue.split('push=')[1].split('&')[0];
+      } else if (inputValue.includes('view=')) {
+        streamId = inputValue.split('view=')[1].split('&')[0];
+      }
+
+      pushLink = `https://vdo.ninja/?push=${streamId}&chat=1&ma=1`;
+      currentLink = `https://vdo.ninja/?view=${streamId}&chat=1`;
+      linkBox.textContent = currentLink;
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+      // Агар ID дар суроға дода шуда бошад (масалан index.html?0653),
+      // онро худкор ба майдони матнӣ ҷойгир мекунем
+      let urlId = window.location.search.replace('?', '').replace('#', '').trim();
+      if (urlId) {
+        document.getElementById('streamInput').value = urlId;
+      }
+      // Линкро дарҳол ҳангоми боркунии саҳифа омода мекунем
+      updateLink();
+    });
+
+    // Ҳар бор, ки ID иваз мешавад, линк низ зуд навсозӣ мешавад
+    document.getElementById('streamInput').addEventListener('input', updateLink);
+
+    document.getElementById('startBtn').addEventListener('click', function() {
+      updateLink();
+      if (!pushLink) return;
+
+      // Кушодани эфир (push) бо чат (&chat=1) ва хомӯш кардани садои тамошобинон (&ma=1)
+      window.open(pushLink, '_blank');
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', function() {
+      if (!currentLink) return;
+
+      navigator.clipboard.writeText(currentLink).then(function() {
+        let copyBtn = document.getElementById('copyBtn');
+        copyBtn.textContent = '✅ Нусха карда шуд!';
+        copyBtn.classList.add('copied');
+        setTimeout(function() {
+          copyBtn.textContent = '📋 Нусха кардани линк';
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      }).catch(function() {
+        // Агар clipboard кор накунад, матнро интихоб мекунем
+        let linkBox = document.getElementById('linkBox');
+        let range = document.createRange();
+        range.selectNode(linkBox);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+      });
+    });
+  </script>
+
+</body>
+</html>
